@@ -3,181 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Manajemen Arsip Surat - Madrasah</title>
+    <title>ARSIP SURAT - TATA USAHA</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .input-field { border: 2px solid #e2e8f0; padding: 14px; border-radius: 16px; width: 100%; outline: none; transition: 0.3s; background: #f9fefc; font-size: 16px !important; }
-        .input-field:focus { border-color: #10b981; background: #ffffff; }
+        .input-field { border: 2px solid #e2e8f0; padding: 14px; border-radius: 16px; width: 100%; outline: none; transition: 0.3s; background: #ffffff; font-size: 16px !important; }
+        .input-field:focus { border-color: #10b981; }
         .btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: 800; }
         .hidden { display: none; }
+        .animate-up { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-50 min-h-full pb-20">
+<body class="bg-slate-50 min-h-full pb-24 text-slate-700">
 
-    <!-- Header -->
     <nav class="bg-white border-b border-green-100 px-6 h-16 flex items-center justify-between sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <span class="text-xl">📁</span>
-            <h1 class="font-extrabold text-emerald-900 text-sm uppercase tracking-wider">Kelola Arsip Surat</h1>
+            <h1 class="font-extrabold text-emerald-900 text-sm uppercase tracking-widest">MANAJEMEN ARSIP</h1>
         </div>
-        <a href="/" class="text-[10px] font-bold text-slate-400 border px-3 py-1.5 rounded-xl uppercase">Dashboard ➜</a>
+        <div class="flex gap-2">
+            <button onclick="unduhExcel()" class="p-2 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold border border-green-100 uppercase">Excel</button>
+            <button onclick="unduhPDF()" class="p-2 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold border border-red-100 uppercase">PDF</button>
+        </div>
     </nav>
 
     <main class="p-5 max-w-2xl mx-auto space-y-6">
         <!-- Pencarian & Tab -->
-        <div class="bg-white p-4 rounded-3xl border border-green-100 shadow-sm space-y-4">
-            <input type="text" id="search-box" onkeyup="renderSurat()" placeholder="Cari Judul / Pengirim..." class="input-field">
-            <div class="flex gap-2 p-1 bg-slate-100 rounded-2xl">
-                <button onclick="switchTab('masuk')" id="tab-masuk" class="flex-1 py-3 rounded-xl font-bold text-xs bg-white text-emerald-600 shadow-sm">SURAT MASUK</button>
-                <button onclick="switchTab('keluar')" id="tab-keluar" class="flex-1 py-3 rounded-xl font-bold text-xs text-slate-500">SURAT KELUAR</button>
+        <div class="bg-white p-5 rounded-[32px] border border-green-100 shadow-sm space-y-4">
+            <input type="text" id="search-box" onkeyup="renderSurat()" placeholder="Cari Judul / Pengirim..." class="input-field shadow-inner">
+            <div class="flex gap-2 p-1.5 bg-slate-100 rounded-2xl">
+                <button onclick="switchTab('masuk')" id="tab-masuk" class="flex-1 py-3 rounded-xl font-bold text-xs bg-white text-emerald-600 shadow-sm transition-all">SURAT MASUK</button>
+                <button onclick="switchTab('keluar')" id="tab-keluar" class="flex-1 py-3 rounded-xl font-bold text-xs text-slate-500 transition-all">SURAT KELUAR</button>
             </div>
         </div>
 
-        <!-- Tombol Tambah -->
-        <button onclick="openModal()" class="w-full btn-green py-5 rounded-[24px] shadow-xl shadow-green-100 flex items-center justify-center gap-2 text-sm uppercase tracking-widest">
-            <span>+ TAMBAH ARSIP BARU</span>
+        <button onclick="openModal()" class="w-full btn-green py-5 rounded-[28px] shadow-xl shadow-green-100 flex items-center justify-center gap-2 text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
+            + TAMBAH ARSIP BARU
         </button>
 
-        <!-- List Surat -->
         <div id="list-surat" class="grid gap-4">
-            <!-- Data akan muncul di sini -->
-            <p class="text-center text-slate-400 text-xs py-10">Memuat data surat...</p>
+            <p class="text-center text-slate-300 text-xs py-10 uppercase font-bold tracking-widest">Memuat data...</p>
         </div>
     </main>
 
     <!-- MODAL FORM -->
     <div id="modal-form" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
         <div class="bg-white rounded-[40px] p-8 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-extrabold text-xl text-emerald-900 uppercase">Tambah Arsip</h3>
-                <button onclick="closeModal()" class="text-3xl text-slate-300">&times;</button>
-            </div>
+            <h3 class="font-extrabold text-xl text-emerald-900 uppercase mb-6 text-center">Formulir Arsip</h3>
             <form onsubmit="simpanData(event)" class="space-y-4">
-                <input id="f-judul" placeholder="Judul / Perihal Surat" required class="input-field font-bold">
+                <input id="f-judul" placeholder="Judul / Perihal" required class="input-field font-bold">
                 <input id="f-pengirim" placeholder="Pengirim / Penerima" required class="input-field">
                 <input id="f-tanggal" type="date" required class="input-field">
                 
-                <div class="bg-emerald-50 p-5 rounded-3xl border-2 border-dashed border-emerald-200">
-                    <p class="text-center text-[10px] font-extrabold text-emerald-600 uppercase mb-3">Lampiran (PDF/Foto)</p>
-                    <label for="f-file" id="label-file" class="bg-white p-3 rounded-xl border block text-center text-[10px] font-bold cursor-pointer hover:bg-emerald-100">KLIK UNTUK UPLOAD</label>
+                <div class="bg-emerald-50 p-6 rounded-3xl border-2 border-dashed border-emerald-200">
+                    <p class="text-center text-[10px] font-extrabold text-emerald-600 uppercase mb-4">Lampiran Berkas</p>
+                    <label for="f-file" id="label-file" class="bg-white p-4 rounded-2xl border block text-center text-xs font-bold cursor-pointer hover:bg-emerald-100 transition-all shadow-sm">KLIK UNTUK UPLOAD</label>
                     <input type="file" id="f-file" class="hidden" onchange="handleFileSelect(event)">
-                    <p id="file-info" class="text-[9px] text-center mt-2 text-emerald-500 font-bold hidden"></p>
+                    <p id="file-info" class="text-[10px] text-center mt-3 text-emerald-600 font-bold hidden bg-white p-2 rounded-lg"></p>
                 </div>
 
-                <div class="flex gap-2 pt-4">
+                <div class="flex gap-3 pt-6">
                     <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 py-4 rounded-2xl font-bold text-slate-400 uppercase text-[10px]">Batal</button>
-                    <button type="submit" id="btn-save" class="flex-1 btn-green py-4 rounded-2xl shadow-lg uppercase text-[10px]">Simpan Arsip</button>
+                    <button type="submit" id="btn-save" class="flex-1 btn-green py-4 rounded-2xl shadow-lg uppercase text-[10px]">Simpan Data</button>
                 </div>
             </form>
         </div>
     </div>
 
 <script>
-    let allData = [];
-    let currentTab = 'masuk';
-    let currentFile = null;
+    let allData = [], currentTab = 'masuk', currentFile = null;
 
-    // 1. Ambil Data
     async function loadData() {
         const res = await fetch('/api/surat');
         allData = await res.json();
         renderSurat();
     }
 
-    // 2. Tampilkan Data
     function renderSurat() {
         const keyword = document.getElementById('search-box').value.toLowerCase();
         const container = document.getElementById('list-surat');
-        const filtered = allData.filter(s => 
-            s.category === currentTab && 
-            (s.judul.toLowerCase().includes(keyword) || s.pengirim.toLowerCase().includes(keyword))
-        );
-
-        if(filtered.length === 0) {
-            container.innerHTML = `<p class="text-center text-slate-300 text-xs py-10 uppercase font-bold tracking-widest tracking-widest">Tidak ada data</p>`;
-            return;
-        }
-
-        container.innerHTML = filtered.map(s => `
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-4 animate-up">
+        const filtered = allData.filter(s => s.category === currentTab && (s.judul.toLowerCase().includes(keyword) || s.pengirim.toLowerCase().includes(keyword)));
+        
+        container.innerHTML = filtered.length ? filtered.map(s => `
+            <div class="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col gap-4 animate-up">
                 <div class="flex justify-between items-start">
                     <div class="flex-1 pr-4">
-                        <p class="text-[10px] font-bold text-emerald-600 uppercase mb-1">${s.category}</p>
-                        <h4 class="font-extrabold text-slate-800 text-sm leading-tight uppercase">${s.judul}</h4>
-                        <p class="text-[10px] text-slate-400 mt-1">${s.pengirim} | ${new Date(s.tanggal).toLocaleDateString('id-ID')}</p>
+                        <p class="text-[9px] font-extrabold text-emerald-600 uppercase mb-1 tracking-widest">${s.category}</p>
+                        <h4 class="font-extrabold text-slate-800 text-sm uppercase leading-tight">${s.judul}</h4>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1">${s.pengirim} | ${new Date(s.tanggal).toLocaleDateString('id-ID')}</p>
                     </div>
-                    <button onclick="hapusData('${s.id}')" class="text-red-400 p-2">🗑️</button>
+                    <button onclick="hapusData('${s.id}')" class="text-red-400 bg-red-50 p-2 rounded-xl">🗑️</button>
                 </div>
-                ${s.file_name ? `
-                    <a href="${s.file_name}" target="_blank" class="bg-blue-50 text-blue-600 text-center py-3 rounded-2xl text-[10px] font-extrabold border border-blue-100 tracking-widest">LIHAT LAMPIRAN ↗</a>
-                ` : ''}
+                ${s.file_name ? `<a href="${s.file_name}" target="_blank" class="bg-emerald-50 text-emerald-700 text-center py-3 rounded-2xl text-[10px] font-extrabold border border-emerald-100 uppercase tracking-widest">BUKA LAMPIRAN ↗</a>` : ''}
             </div>
-        `).join('');
+        `).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase text-[10px]">Data Kosong</p>';
     }
 
-    // 3. Logika File
     function handleFileSelect(e) {
         const file = e.target.files[0];
         if(!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
             currentFile = { name: file.name, type: file.type, content: ev.target.result.split(',')[1] };
-            document.getElementById('file-info').textContent = "SIAP: " + file.name;
+            document.getElementById('file-info').textContent = "TERPILIH: " + file.name;
             document.getElementById('file-info').classList.remove('hidden');
-            document.getElementById('label-file').textContent = "GANTI FILE";
         };
         reader.readAsDataURL(file);
     }
 
-    // 4. Simpan Data
     async function simpanData(e) {
         e.preventDefault();
         const btn = document.getElementById('btn-save');
-        btn.disabled = true; btn.textContent = "MENGIRIM...";
-
+        btn.disabled = true; btn.textContent = "PROSES...";
         try {
             let fileUrl = null;
             if(currentFile) {
-                const uploadRes = await fetch(`/api/upload?bucket=arsip_files&fileName=surat_${Date.now()}_${currentFile.name}&fileType=${currentFile.type}`, {
-                    method: 'POST', body: currentFile.content
-                });
-                const uploadData = await uploadRes.json();
-                fileUrl = uploadData.publicUrl;
+                const resUp = await fetch(`/api/upload?bucket=arsip_files&fileName=surat_${Date.now()}_${currentFile.name}&fileType=${currentFile.type}`, { method: 'POST', body: currentFile.content });
+                fileUrl = (await resUp.json()).publicUrl;
             }
-
-            const body = {
-                judul: document.getElementById('f-judul').value,
-                pengirim: document.getElementById('f-pengirim').value,
-                tanggal: document.getElementById('f-tanggal').value,
-                category: currentTab,
-                file_name: fileUrl
-            };
-
+            const body = { judul: document.getElementById('f-judul').value, pengirim: document.getElementById('f-pengirim').value, tanggal: document.getElementById('f-tanggal').value, category: currentTab, file_name: fileUrl };
             await fetch('/api/surat', { method:'POST', body: JSON.stringify(body) });
-            alert("Berhasil!");
             location.reload();
-        } catch(err) { alert("Gagal Simpan"); btn.disabled = false; btn.textContent = "SIMPAN ARSIP"; }
+        } catch(e) { alert("Error!"); btn.disabled = false; btn.textContent = "SIMPAN"; }
     }
 
-    // 5. Hapus Data
     async function hapusData(id) {
-        if(!confirm("Hapus arsip ini?")) return;
-        await fetch('/api/surat', { method:'POST', body: JSON.stringify({action:'delete', id: id}) });
-        loadData();
+        if(confirm("Hapus?")) { await fetch('/api/surat', { method:'POST', body: JSON.stringify({action:'delete', id}) }); loadData(); }
     }
 
-    // 6. UI Utils
-    function switchTab(tab) {
-        currentTab = tab;
-        document.getElementById('tab-masuk').className = tab === 'masuk' ? "flex-1 py-3 rounded-xl font-bold text-xs bg-white text-emerald-600 shadow-sm" : "flex-1 py-3 rounded-xl font-bold text-xs text-slate-500";
-        document.getElementById('tab-keluar').className = tab === 'keluar' ? "flex-1 py-3 rounded-xl font-bold text-xs bg-white text-emerald-600 shadow-sm" : "flex-1 py-3 rounded-xl font-bold text-xs text-slate-500";
+    function unduhExcel() {
+        const ws = XLSX.utils.json_to_sheet(allData.map((s,i)=>({"No":i+1,"Kategori":s.category.toUpperCase(),"Judul":s.judul,"Pihak":s.pengirim,"Tanggal":s.tanggal})));
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Arsip");
+        XLSX.writeFile(wb, `LAPORAN_ARSIP_${Date.now()}.xlsx`);
+    }
+
+    function unduhPDF() {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.text("LAPORAN ARSIP MADRASAH", 14, 15);
+        const rows = allData.map((s,i)=>[i+1, s.category.toUpperCase(), s.judul, s.pengirim, s.tanggal]);
+        doc.autoTable({ head: [['No','Kategori','Judul','Pihak','Tanggal']], body: rows, startY: 25 });
+        doc.save(`LAPORAN_ARSIP_${Date.now()}.pdf`);
+    }
+
+    function switchTab(t) {
+        currentTab = t;
+        document.getElementById('tab-masuk').className = t === 'masuk' ? "flex-1 py-3 rounded-xl font-bold text-xs bg-white text-emerald-600 shadow-sm" : "flex-1 py-3 rounded-xl font-bold text-xs text-slate-500";
+        document.getElementById('tab-keluar').className = t === 'keluar' ? "flex-1 py-3 rounded-xl font-bold text-xs bg-white text-emerald-600 shadow-sm" : "flex-1 py-3 rounded-xl font-bold text-xs text-slate-500";
         renderSurat();
     }
     function openModal() { document.getElementById('modal-form').classList.remove('hidden'); }
     function closeModal() { document.getElementById('modal-form').classList.add('hidden'); currentFile = null; }
-
     loadData();
 </script>
 </body>
