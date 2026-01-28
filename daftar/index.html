@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PENDAFTARAN SISWA BARU</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f0fdf4; }
+    .card-glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border: 1px solid #dcfce7; }
+    .input-field { border: 2px solid #d1fae5; transition: 0.3s; padding: 14px; border-radius: 16px; width: 100%; outline: none; background: #f9fefc; font-size: 16px !important; }
+    .input-field:focus { border-color: #10b981; background: #ffffff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+    .btn-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: 0.3s; color: white; font-weight: 800; }
+    .hidden { display: none; }
+    .animate-up { animation: slideUp 0.5s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="h-full overflow-x-hidden text-slate-700">
+
+  <!-- Navigasi Sederhana -->
+  <nav class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur border-b border-green-100 flex items-center justify-center h-16 shadow-sm">
+    <div class="flex items-center gap-2">
+        <img id="nav-logo" src="" class="w-8 h-8 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/281/281760.png'">
+        <span id="nav-school-name" class="font-extrabold text-emerald-900 text-sm uppercase">PPDB ONLINE</span>
+    </div>
+  </nav>
+
+  <main class="pt-24 pb-12 px-4 max-w-xl mx-auto">
+    
+    <!-- VIEW: FORM PENDAFTARAN -->
+    <div id="view-register" class="animate-up">
+        <div class="text-center mb-8">
+            <h1 id="hero-title" class="text-2xl font-extrabold text-emerald-950 uppercase tracking-tight">FORMULIR PENDAFTARAN</h1>
+            <p id="hero-desc" class="text-emerald-700/70 mt-1 text-xs italic font-medium"></p>
+        </div>
+
+        <form id="ppdb-form" onsubmit="processRegistration(event)" class="card-glass rounded-[40px] p-8 shadow-2xl border border-white space-y-5">
+            <!-- Indikator Tahap -->
+            <div class="flex justify-center gap-2 mb-6">
+                <div id="step-1" class="w-10 h-1.5 rounded-full bg-emerald-600"></div>
+                <div id="step-2" class="w-10 h-1.5 rounded-full bg-slate-100"></div>
+                <div id="step-3" class="w-10 h-1.5 rounded-full bg-slate-100"></div>
+            </div>
+
+            <!-- Bagian 1 -->
+            <div id="div-step-1" class="space-y-4">
+                <p class="font-bold text-[10px] text-emerald-600 uppercase tracking-widest border-l-4 border-emerald-600 pl-2">I. Data Diri Siswa</p>
+                <input type="text" id="nama_lengkap" required class="input-field" placeholder="Nama Lengkap Sesuai Ijazah">
+                <input type="text" id="nisn" required class="input-field" placeholder="NISN (10 Digit)">
+                <input type="text" id="tempat_lahir" required class="input-field" placeholder="Tempat Lahir">
+                <input type="date" id="tanggal_lahir" required class="input-field">
+                <select id="jenis_kelamin" required class="input-field bg-white"><option value="">Jenis Kelamin</option><option>Laki-laki</option><option>Perempuan</option></select>
+                <input type="tel" id="no_whatsapp" required class="input-field" placeholder="Nomor WhatsApp">
+                <button type="button" onclick="goToStep(2)" class="w-full btn-green py-4 rounded-2xl shadow-lg mt-4 uppercase">Lanjut ➜</button>
+            </div>
+
+            <!-- Bagian 2 -->
+            <div id="div-step-2" class="hidden space-y-4">
+                <p class="font-bold text-[10px] text-emerald-600 uppercase tracking-widest border-l-4 border-emerald-600 pl-2">II. Alamat & Sekolah</p>
+                <textarea id="alamat" required class="input-field" placeholder="Alamat Lengkap" rows="2"></textarea>
+                <input type="text" id="kecamatan" required class="input-field" placeholder="Kecamatan">
+                <input type="text" id="asal_sekolah" required class="input-field" placeholder="Nama SD/MI Asal">
+                <div class="flex gap-2">
+                    <button type="button" onclick="goToStep(1)" class="w-1/3 bg-slate-100 py-4 rounded-2xl font-bold text-slate-400">KEMBALI</button>
+                    <button type="button" onclick="goToStep(3)" class="w-2/3 btn-green py-4 rounded-2xl uppercase">Lanjut ➜</button>
+                </div>
+            </div>
+
+            <!-- Bagian 3 -->
+            <div id="div-step-3" class="hidden space-y-4">
+                <p class="font-bold text-[10px] text-emerald-600 uppercase tracking-widest border-l-4 border-emerald-600 pl-2">III. Data Orang Tua</p>
+                <input type="text" id="nama_ayah" required class="input-field" placeholder="Nama Ayah">
+                <input type="text" id="nama_ibu" required class="input-field" placeholder="Nama Ibu">
+                <select id="penghasilan_ortu" required class="input-field bg-white"><option value="">Penghasilan Ortu</option><option>< Rp 2 Juta</option><option>Rp 2 - 5 Juta</option><option>> Rp 5 Juta</option></select>
+                <div class="flex gap-2">
+                    <button type="button" onclick="goToStep(2)" class="w-1/3 bg-slate-100 py-4 rounded-2xl font-bold text-slate-400">KEMBALI</button>
+                    <button type="submit" id="btn-submit" class="w-2/3 btn-green py-4 rounded-2xl shadow-xl uppercase">Kirim ✅</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- VIEW: SUKSES -->
+    <div id="view-success" class="hidden text-center animate-up">
+        <div class="card-glass rounded-[50px] p-10 shadow-2xl border-4 border-white">
+            <div class="text-5xl mb-6">✅</div>
+            <h2 class="text-xl font-extrabold text-emerald-950 mb-2 uppercase">Berhasil Terdaftar!</h2>
+            <p class="text-emerald-700/70 text-xs mb-8">Klik tombol di bawah untuk menyimpan **Bukti Pendaftaran** ke WhatsApp Anda.</p>
+            <button onclick="sendToWhatsAppSiswa()" class="w-full bg-[#25D366] text-white py-5 rounded-3xl font-extrabold shadow-lg flex items-center justify-center gap-3">
+                📲 SIMPAN KE WHATSAPP
+            </button>
+            <p class="text-[10px] text-slate-400 mt-10 font-bold uppercase cursor-pointer" onclick="location.reload()">Daftar Siswa Baru Lagi</p>
+        </div>
+    </div>
+
+  </main>
+
+<script>
+let appSettings = {}, currentStep = 1, registrationResult = {}, finalPdfUrl = "";
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/settings');
+        appSettings = await res.json();
+        document.getElementById('nav-school-name').textContent = appSettings.school_name;
+        document.getElementById('hero-title').textContent = "PPDB " + appSettings.school_name;
+        document.getElementById('hero-desc').textContent = appSettings.welcome_text;
+        if(appSettings.school_logo) document.getElementById('nav-logo').src = appSettings.school_logo;
+    } catch(e) {}
+});
+
+function goToStep(s) {
+    ['div-step-1','div-step-2','div-step-3'].forEach(d => document.getElementById(d).classList.add('hidden'));
+    document.getElementById('div-step-'+s).classList.remove('hidden');
+    for(let i=1; i<=3; i++){ document.getElementById('step-'+i).className = "w-10 h-1.5 rounded-full " + (i<=s ? "bg-emerald-600":"bg-slate-100"); }
+    currentStep = s; window.scrollTo(0,0);
+}
+
+async function processRegistration(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true; btn.textContent = "MEMPROSES...";
+    const data = {};
+    document.querySelectorAll('#ppdb-form input, #ppdb-form select, #ppdb-form textarea').forEach(i => data[i.id] = i.value);
+    registrationResult = data;
+    try {
+        // 1. Buat PDF & Upload
+        const pdfUrl = await generateAndUploadPDF(data);
+        data.link_bukti = pdfUrl;
+        finalPdfUrl = pdfUrl;
+        // 2. Simpan ke DB
+        await fetch('/api/siswa', { method:'POST', body: JSON.stringify(data) });
+        document.getElementById('view-register').classList.add('hidden');
+        document.getElementById('view-success').classList.remove('hidden');
+    } catch (err) { alert("Error!"); btn.disabled = false; btn.textContent = "KIRIM ✅"; }
+}
+
+async function generateAndUploadPDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18); doc.text("BUKTI PENDAFTARAN", 105, 20, {align:'center'});
+    doc.setFontSize(14); doc.text(appSettings.school_name, 105, 30, {align:'center'});
+    doc.line(20, 35, 190, 35);
+    const body = [["NAMA", data.nama_lengkap.toUpperCase()], ["NISN", data.nisn], ["ASAL SEKOLAH", data.asal_sekolah]];
+    doc.autoTable({ startY: 45, body: body, theme:'grid', headStyles: {fillColor: [6, 95, 70]} });
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    const res = await fetch(`/api/upload?bucket=ppdb_bukti&fileName=Bukti_${data.nisn}_${Date.now()}.pdf&fileType=application/pdf`, { method:'POST', body: pdfBase64 });
+    const resData = await res.json();
+    return resData.publicUrl;
+}
+
+function sendToWhatsAppSiswa() {
+    let phone = registrationResult.no_whatsapp;
+    if (phone.startsWith('0')) phone = '62' + phone.slice(1);
+    const msg = `Halo *${registrationResult.nama_lengkap}*,%0A%0APendaftaran Anda di *${appSettings.school_name}* BERHASIL.%0A%0A*Link Bukti PDF:*%0A${finalPdfUrl}`;
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+</script>
+</body>
+</html>
