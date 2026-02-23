@@ -198,7 +198,7 @@ async function generateAndUploadPDF(data) {
 function sendToWhatsAppSiswa() {
     let phone = registrationResult.no_hp_ortu;
     if (phone.startsWith('0')) phone = '62' + phone.slice(1);
-    const msg = `Halo *${registrationResult.nama_lengkap}*,%0A%0APendaftaran Anda di *${appSettings.school_name}* BERHASIL.%0A%0A*Link Bukti PDF:*%0A${finalPdfUrl}%0A%0ASilakan simpan link di atas sebagai bukti pendaftaran resmi.`;
+    const msg = `Halo *${registrationResult.nama_lengkap}*,%0A%0APendaftaran Anda di *${appSettings.school_name}* BERHASIL.%0A%0A*Link Bukti PDF:*%0A${finalPdfUrl}%0A%0A Silakan simpan link di atas sebagai bukti pendaftaran resmi.`;
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
 }
 </script>
